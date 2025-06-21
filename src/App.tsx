@@ -1,24 +1,28 @@
 import { useState, useEffect } from "react";
-import { fetchUnsplashWithTopic } from "./articles-api.js";
+import { fetchUnsplashWithTopic } from "./articles-api";
+import { UnsplashImage } from "./types";
 
 import "./App.css";
-import SearchBar from "./components/SearchBar/SearchBar.js";
-import ImageGallery from "./components/ImageGallery/ImageGallery.js";
+import SearchBar from "./components/SearchBar/SearchBar";
+import ImageGallery from "./components/ImageGallery/ImageGallery";
 import LoadMoreBtn from "./components/LoadMoreBtn/LoadMoreBtn";
-import ImageModal from "./components/ImageModal/ImageModal.js";
+import ImageModal from "./components/ImageModal/ImageModal";
+
 import { Toaster } from "react-hot-toast";
 import { ClipLoader } from "react-spinners";
 
 export default function App() {
-  const [imageData, setimageData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
-  const [searchTopic, setSearchTopic] = useState("");
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [imageData, setImageData] = useState<UnsplashImage[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
+  const [searchTopic, setSearchTopic] = useState<string>("");
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [selectedImage, setSelectedImage] = useState<UnsplashImage | null>(
+    null
+  );
 
-  const handleImageClick = (image) => {
+  const handleImageClick = (image: UnsplashImage) => {
     setSelectedImage(image);
   };
 
@@ -28,22 +32,22 @@ export default function App() {
 
   useEffect(() => {
     async function fetchUnsplash() {
-      if (!searchTopic) {
-        return;
-      }
+      if (!searchTopic) return;
+
       try {
         setLoading(true);
         setError(false);
         const data = await fetchUnsplashWithTopic(searchTopic, page);
-        if (data && data.length > 0) {
-          setimageData((prevArticles) => [...prevArticles, ...data]);
-        } else if (page === 1) {
-          setimageData([]);
-          setHasMore(false);
+        if (data?.length > 0) {
+          setImageData((prev) => [...prev, ...data]);
         } else {
+          if (page === 1) setImageData([]);
           setHasMore(false);
         }
-      } catch (error) {
+      } catch (err) {
+        if (err instanceof Error) {
+          console.error(err.message);
+        }
         setError(true);
       } finally {
         setLoading(false);
@@ -53,9 +57,9 @@ export default function App() {
     fetchUnsplash();
   }, [searchTopic, page]);
 
-  const handleSearchSubmit = (topic) => {
+  const handleSearchSubmit = (topic: string) => {
     setSearchTopic(topic);
-    setimageData([]);
+    setImageData([]);
     setPage(1);
     setHasMore(true);
   };
